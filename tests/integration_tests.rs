@@ -150,6 +150,45 @@ config:
 }
 
 #[test]
+fn test_sequence_with_mixed_item_types() {
+    let yaml = Yaml::new();
+
+    let yaml_content = r#"
+comp:
+  - key1: value1
+  - key2: value2
+  - value3
+"#;
+
+    let result = yaml.load_str(yaml_content).unwrap();
+
+    // Build expected structure: sequence with two mappings and one scalar
+    let mut mapping1 = indexmap::IndexMap::new();
+    mapping1.insert(
+        Value::String("key1".to_string()),
+        Value::String("value1".to_string()),
+    );
+
+    let mut mapping2 = indexmap::IndexMap::new();
+    mapping2.insert(
+        Value::String("key2".to_string()),
+        Value::String("value2".to_string()),
+    );
+
+    let sequence = Value::Sequence(vec![
+        Value::Mapping(mapping1),
+        Value::Mapping(mapping2),
+        Value::String("value3".to_string()),
+    ]);
+
+    let mut expected_map = indexmap::IndexMap::new();
+    expected_map.insert(Value::String("comp".to_string()), sequence);
+    let expected = Value::Mapping(expected_map);
+
+    assert_eq!(result, expected);
+}
+
+#[test]
 fn test_multi_document_parsing() {
     let yaml = Yaml::new();
 

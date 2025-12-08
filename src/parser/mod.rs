@@ -721,7 +721,7 @@ impl BasicParser {
                         // We're already in a sequence, this is a new item
                         // No event needed, but we should be ready for the next item
                     }
-                    ParserState::BlockMapping | ParserState::BlockMappingValue => {
+                    ParserState::BlockMapping | ParserState::BlockMappingKey | ParserState::BlockMappingValue => {
                         // If we encounter a BlockEntry while in a mapping,
                         // we need to close the mapping and continue the sequence
                         self.events.push(Event::mapping_end(token.start_position));
