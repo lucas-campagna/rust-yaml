@@ -433,13 +433,12 @@ impl BasicEmitter {
         for (index, item) in seq.iter().enumerate() {
             if index > 0 {
                 writeln!(writer)?;
+                self.write_indent(writer)?;
             }
-            self.write_indent(writer)?;
             write!(writer, "- ")?;
 
             match item {
                 Value::Sequence(_) | Value::Mapping(_) => {
-                    writeln!(writer)?; // Add newline before nested structure
                     self.current_indent += self.indent;
                     self.emit_value(item, writer)?;
                     self.current_indent -= self.indent;
@@ -494,16 +493,18 @@ impl BasicEmitter {
                 self.emit_scalar(key, writer)?;
             }
 
-            write!(writer, ": ")?;
+            write!(writer, ":")?;
 
             match value {
                 Value::Sequence(_) | Value::Mapping(_) => {
                     writeln!(writer)?; // Add newline before nested structure
                     self.current_indent += self.indent;
+                    self.write_indent(writer)?;
                     self.emit_value(value, writer)?;
                     self.current_indent -= self.indent;
                 }
                 _ => {
+                    write!(writer, " ")?;
                     self.emit_scalar(value, writer)?;
                 }
             }
@@ -527,10 +528,9 @@ impl BasicEmitter {
         for (key, value) in map {
             if !first {
                 writeln!(writer)?;
+                self.write_indent(writer)?;
             }
             first = false;
-
-            self.write_indent(writer)?;
 
             // Handle both simple and complex keys
             let is_complex_key = matches!(key, Value::Sequence(_) | Value::Mapping(_));
@@ -558,16 +558,18 @@ impl BasicEmitter {
                 self.emit_scalar(key, writer)?;
             }
 
-            write!(writer, ": ")?;
-
+            write!(writer, ":")?;
+            
             match value {
                 Value::Sequence(_) | Value::Mapping(_) => {
                     writeln!(writer)?; // Add newline before nested structure
                     self.current_indent += self.indent;
+                    self.write_indent(writer)?;
                     self.emit_value(value, writer)?;
                     self.current_indent -= self.indent;
                 }
                 _ => {
+                    write!(writer, " ")?;
                     self.emit_scalar(value, writer)?;
                 }
             }
@@ -603,7 +605,7 @@ impl BasicEmitter {
                 }
             }
 
-            write!(writer, ": ")?;
+            write!(writer, ":")?;
 
             // Emit value (handle nested complex values)
             match value {
@@ -614,6 +616,7 @@ impl BasicEmitter {
                     self.emit_sequence_flow_style(nested_seq, writer)?;
                 }
                 _ => {
+                    write!(writer, " ")?;
                     self.emit_scalar(value, writer)?;
                 }
             }

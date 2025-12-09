@@ -876,6 +876,7 @@ service:
             .load_str(&serialized)
             .expect("Failed to parse round-trip");
 
+        eprintln!("{}", serialized.to_string());
         // Should be the same
         assert_eq!(parsed, round_trip, "Complex YAML round-trip failed");
     }
