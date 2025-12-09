@@ -1925,6 +1925,9 @@ impl BasicScanner {
                     }
                     mapping_depth -= 1;
                 }
+                TokenType::BlockSequenceStart => {
+                    mapping_depth -= 1;
+                }
                 TokenType::BlockEnd => {
                     mapping_depth += 1;
                 }

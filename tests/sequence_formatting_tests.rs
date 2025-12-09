@@ -72,6 +72,66 @@ fn test_simple_sequence_formatting() {
 fn test_mapping_sequence_formatting() {
     let yaml = Yaml::new();
 
+    let original = r#"key1:
+  - item1
+  - item2
+key2:
+  - item3
+  - item4
+"#;
+    let parsed = yaml.load_str(original).unwrap();
+
+    let mut map = IndexMap::new();
+    let seq1 = vec![Value::String("item1".into()), Value::String("item2".into())];
+    let seq2 = vec![Value::String("item3".into()), Value::String("item4".into())];
+    map.insert(Value::String("key1".into()), Value::Sequence(seq1.clone()));
+    map.insert(Value::String("key2".into()), Value::Sequence(seq2.clone()));
+    let expected = Value::Mapping(map);
+    let round_trip = yaml.dump_str(&expected).unwrap();
+    eprintln!("{}", parsed);
+    assert_eq!(parsed, expected);
+    assert_eq!(round_trip, original);
+}
+
+#[test]
+fn test_mapping_sequence_formatting_complex() {
+    let yaml = Yaml::new();
+
+    let original = r#"card1:
+  body:
+    - h1: title
+    - p: content
+card2:
+  from: div
+  class: card
+"#;
+    let parsed = yaml.load_str(original).unwrap();
+
+    let mut map_outter = IndexMap::new();
+    let mut map_card1 = IndexMap::new();
+    let mut map_card2 = IndexMap::new();
+    let mut map_h1 = IndexMap::new();
+    let mut map_p = IndexMap::new();
+    map_h1.insert(Value::String("h1".into()), Value::String("title".into()));
+    map_p.insert(Value::String("p".into()), Value::String("content".into()));
+    let seq_body = vec![Value::Mapping(map_h1), Value::Mapping(map_p)];
+    map_card1.insert(Value::String("body".into()), Value::Sequence(seq_body));
+    map_card2.insert(Value::String("from".into()), Value::String("div".into()));
+    map_card2.insert(Value::String("class".into()), Value::String("card".into()));
+    map_outter.insert(Value::String("card1".into()), Value::Mapping(map_card1));
+    map_outter.insert(Value::String("card2".into()), Value::Mapping(map_card2));
+
+    let expected = Value::Mapping(map_outter);
+    let round_trip = yaml.dump_str(&expected).unwrap();
+    eprintln!("{}", parsed);
+    assert_eq!(parsed, expected);
+    assert_eq!(round_trip, original);
+}
+
+#[test]
+fn test_mapping_sequence_mapping() {
+    let yaml = Yaml::new();
+
     // Test mapping containing a sequence of scalars
     let sequence = Value::Sequence(vec![
         Value::String("item1".to_string()),
