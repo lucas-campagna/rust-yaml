@@ -88,7 +88,6 @@ key2:
     map.insert(Value::String("key2".into()), Value::Sequence(seq2.clone()));
     let expected = Value::Mapping(map);
     let round_trip = yaml.dump_str(&expected).unwrap();
-    eprintln!("{}", parsed);
     assert_eq!(parsed, expected);
     assert_eq!(round_trip, original);
 }
@@ -123,7 +122,6 @@ card2:
 
     let expected = Value::Mapping(map_outter);
     let round_trip = yaml.dump_str(&expected).unwrap();
-    eprintln!("{}", parsed);
     assert_eq!(parsed, expected);
     assert_eq!(round_trip, original);
 }
