@@ -127,6 +127,76 @@ card2:
 }
 
 #[test]
+fn test_mapping_inside_sequence() {
+    let yaml = Yaml::new();
+
+    let original = r#"
+- a: 1
+  b: 2
+- c: 3
+  d: 4
+"#;
+    let parsed = yaml.load_str(original).unwrap();
+
+    let mut seq_outter = Vec::new();
+    
+    let mut map_1 = IndexMap::new();
+    map_1.insert(Value::String("a".into()), Value::Int(1));
+    map_1.insert(Value::String("b".into()), Value::Int(2));
+    
+    let mut map_2 = IndexMap::new();
+    map_2.insert(Value::String("c".into()), Value::Int(3));
+    map_2.insert(Value::String("d".into()), Value::Int(4));
+
+    seq_outter.push(Value::Mapping(map_1));
+    seq_outter.push(Value::Mapping(map_2));
+
+    let expected = Value::Sequence(seq_outter);
+    let round_trip = yaml.dump_str(&expected).unwrap();
+    assert_eq!(parsed, expected);
+    assert_eq!(round_trip, original);
+}
+
+#[test]
+fn test_mapping_inside_sequence_with_outer_mapping() {
+    let yaml = Yaml::new();
+
+    let original = r#"
+a:
+  - b: 1
+    c: 2
+    d: 3
+  - e: 4
+    f: 5
+g: 6
+"#;
+    let parsed = yaml.load_str(original).unwrap();
+
+    let mut map_1 = IndexMap::new();
+    
+    let mut map_2 = IndexMap::new();
+    map_2.insert(Value::String("b".into()), Value::Int(1));
+    map_2.insert(Value::String("c".into()), Value::Int(2));
+    map_2.insert(Value::String("d".into()), Value::Int(3));
+    
+    let mut map_3 = IndexMap::new();
+    map_3.insert(Value::String("e".into()), Value::Int(4));
+    map_3.insert(Value::String("f".into()), Value::Int(5));
+
+    let mut seq_1 = vec![];
+    seq_1.push(Value::Mapping(map_2));
+    seq_1.push(Value::Mapping(map_3));
+
+    map_1.insert(Value::String("a".into()), Value::Sequence(seq_1));
+    map_1.insert(Value::String("g".into()), Value::Int(6));
+
+    let expected = Value::Mapping(map_1);
+    let round_trip = yaml.dump_str(&expected).unwrap();
+    assert_eq!(parsed, expected);
+    assert_eq!(round_trip.trim(), original.trim());
+}
+
+#[test]
 fn test_mapping_sequence_mapping() {
     let yaml = Yaml::new();
 

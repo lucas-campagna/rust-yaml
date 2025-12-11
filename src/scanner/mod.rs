@@ -1299,6 +1299,9 @@ impl BasicScanner {
                         if should_start_mapping {
                             let last_indent = *self.indent_stack.last().unwrap();
 
+                            // Updating the current_ident to handle cases where with mapping inside of sequence
+                            self.current_indent = self.calculate_current_indent();
+                            
                             // Check if we should start a new mapping
                             // Start a mapping if:
                             // 1. No mapping is active at this indentation level, OR
@@ -1362,6 +1365,18 @@ impl BasicScanner {
         }
 
         Ok(())
+    }
+
+    fn calculate_current_indent(&self) -> usize {
+        let mut level: usize = 0;
+        for i in (0..self.current_char_index).rev() {
+            let ch = self.char_cache[i];
+            match ch {
+                '\n' => break, // End of line, no colon found
+                _ => level += 1
+            }
+        }
+        level
     }
 
     /// Scan the next token lazily
