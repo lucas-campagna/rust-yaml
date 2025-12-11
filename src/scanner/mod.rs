@@ -1258,8 +1258,12 @@ impl BasicScanner {
                 }
 
                 // Numbers or plain scalars starting with -
-                _ if ch.is_ascii_digit()
-                    || (ch == '-' && self.peek_char(1).map_or(false, |c| c.is_ascii_digit())) =>
+                _ if (
+                    ch.is_ascii_digit()
+                    || (ch == '-' && self.peek_char(1).map_or(false, |c| c.is_ascii_digit()))
+                    )
+                    // Need to ensure that even though the line starts with number, it contains only digits
+                    && self.peek_until('\n').all(|c| c.is_ascii_digit()) =>
                 {
                     let token = self.scan_number()?;
                     self.tokens.push(token);
@@ -1475,6 +1479,22 @@ impl BasicScanner {
                 None
             }
         }
+    }
+
+    /// Peek at a character at the given offset (can be negative)
+    fn peek_until(&self, char: char) -> impl Iterator<Item = char> + use<'_>{
+        let mut has_passed = false;
+        (self.current_char_index..self.char_cache.len())
+            .into_iter()
+            .filter_map(move |index| {
+                let character = self.char_cache[index];
+                has_passed = has_passed || character == char;
+                if has_passed {
+                    None
+                } else {
+                    Some(character)
+                }
+            })
     }
 
     /// Scan an anchor token (&name)

@@ -1,5 +1,7 @@
 #![allow(clippy::needless_raw_string_hashes)]
 
+use std::fmt::Debug;
+
 use rust_yaml::{Value, Yaml};
 use indexmap::IndexMap;
 
@@ -194,6 +196,48 @@ g: 6
     let round_trip = yaml.dump_str(&expected).unwrap();
     assert_eq!(parsed, expected);
     assert_eq!(round_trip.trim(), original.trim());
+}
+
+#[test]
+fn test_map_map_seq_map() {
+    let yaml = Yaml::new();
+
+    let original = r#"
+a:
+  b:
+    - c: 1-1
+      d: 2
+    - e: 3
+      f: 4
+g: 5
+"#;
+    let parsed = yaml.load_str(original).unwrap();
+
+    let mut map_1 = IndexMap::new();
+    
+    let mut map_2 = IndexMap::new();
+    let mut seq_1 = vec![];
+
+    let mut map_3 = IndexMap::new();
+    map_3.insert(Value::String("c".into()), Value::String("1-1".into()));
+    map_3.insert(Value::String("d".into()), Value::Int(2));
+    
+    let mut map_4 = IndexMap::new();
+    map_4.insert(Value::String("e".into()), Value::Int(3));
+    map_4.insert(Value::String("f".into()), Value::Int(4));
+    
+    seq_1.push(Value::Mapping(map_3));
+    seq_1.push(Value::Mapping(map_4));
+    
+    map_2.insert(Value::String("b".into()), Value::Sequence(seq_1));
+
+    map_1.insert(Value::String("a".into()), Value::Mapping(map_2));
+    map_1.insert(Value::String("g".into()), Value::Int(5));
+
+    let expected = Value::Mapping(map_1);
+    let round_trip = yaml.dump_str(&expected).unwrap();
+    assert_eq!(parsed, expected);
+    assert_eq!(round_trip.trim(), original.replace("1-1", "\"1-1\"").trim());
 }
 
 #[test]
